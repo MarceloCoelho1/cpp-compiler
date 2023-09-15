@@ -5,7 +5,7 @@
 
 int main() {
     std::regex LETTERS("[a-zA-Z]");
-    std::string text = "120";
+    std::string text = "120.10";
     std::regex NUMBERS("[0-9]");
 
     std::vector<char> code(text.begin(), text.end());
@@ -26,7 +26,7 @@ int main() {
         }
         if(std::regex_match(std::string(1, code.front()), NUMBERS)) {
             std::string number("");
-            while(!code.empty() && std::regex_match(std::string(1, code.front()), NUMBERS)) {
+            while(!code.empty() && std::regex_match(std::string(1, code.front()), NUMBERS) || !code.empty() && code.front() == '.') {
                 number += code.front();
                 code.erase(code.begin());
             }
