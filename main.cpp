@@ -7,7 +7,7 @@
 
 int main() {
     std::regex LETTERS("[a-zA-Z]");
-    std::string text = "name 10.1";
+    std::string text = "// testando esse comentário";
     std::regex NUMBERS("[0-9]");
     
     std::vector<char> code(text.begin(), text.end());
@@ -60,6 +60,22 @@ int main() {
             }
             
             std::cout << "Number: " << number << std::endl;
+        }
+        if(code.front() == '/' && code.at(1) == '/') {
+            code.erase(code.begin());
+            code.erase(code.begin());
+            if(code.front() == ' ') {
+                code.erase(code.begin());
+            }
+
+            std::string comment("");
+            while(!code.empty() && code.front() != '\n') {
+                comment += code.front();
+                code.erase(code.begin());
+            }
+
+            Tokens token(COMMENT, comment);
+            tokens.push_back(token);
         }
     }
 
