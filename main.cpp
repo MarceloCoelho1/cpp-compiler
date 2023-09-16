@@ -5,22 +5,34 @@
 
 int main() {
     std::regex LETTERS("[a-zA-Z]");
-    std::string text = "Marcelo henrique brito coelho";
+    std::string text = "name";
     std::regex NUMBERS("[0-9]");
 
     std::vector<char> code(text.begin(), text.end());
 
 
     while (!code.empty()) {
-        if(std::regex_match(std::string(1, code.front()), LETTERS)) {
+        if(code.front() == '"') {
+            code.erase(code.begin());
             std::string text("");
             while(!code.empty() && std::regex_match(std::string(1, code.front()), LETTERS) || !code.empty() && code.front() == ' ') {
                 text += code.front();
                 code.erase(code.begin());
             }
+            code.erase(code.begin());
 
 
-            std::cout << text << std::endl;
+            std::cout << "String: " << text << std::endl;
+        }
+        if(std::regex_match(std::string(1, code.front()), LETTERS)) {
+            std::string text("");
+            while(!code.empty() && std::regex_match(std::string(1, code.front()), LETTERS)) {
+                text += code.front();
+                code.erase(code.begin());
+            }
+
+
+            std::cout << "Identifier: " << text << std::endl;
         }
         if(code.front() == '\n' || code.front() == ' ') {
             code.erase(code.begin());
