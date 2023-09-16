@@ -77,8 +77,8 @@ std::string text(std::vector<char> code) {
     if(code.empty()) return ""; // if code is empty return an empty string
 
     for(auto &x : code) { // run through code checking if has an text start with
-                          // checking the double aspas(or simple one) and end with it
-        if(code == '\"' || code == '\'') check < 1 ? check++ : check--;
+                          // checking the double aspas and end with it
+        if(x == '\"') check == 0 ? check = 1 : check = 0;
         // need to add the simple aspas and the double ones
 
         if(check == 1) {
