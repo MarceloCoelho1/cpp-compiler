@@ -4,11 +4,45 @@
 #include <regex>
 #include "Tokens.h"
 #include "TokenType.h" 
+#include <unordered_map>
 
 int main() {
+    std::string text = "return";
     std::regex LETTERS("[a-zA-Z]");
-    std::string text = "// testando esse comentário";
     std::regex NUMBERS("[0-9]");
+
+     std::unordered_map<std::string, std::string> map;
+
+        // Reserved keywords in Python
+        map["and"] = "and";
+        map["as"] = "as";
+        map["assert"] = "assert";
+        map["async"] = "async";
+        map["await"] = "await";
+        map["break"] = "break";
+        map["class"] = "class";
+        map["continue"] = "continue";
+        map["def"] = "def";
+        map["del"] = "del";
+        map["elif"] = "elif";
+        map["else"] = "else";
+        map["except"] = "except";
+        map["False"] = "False";
+        map["finally"] = "finally";
+        map["for"] = "for";
+        map["from"] = "from";
+        map["global"] = "global";
+        map["if"] = "if";
+        map["import"] = "import";
+        map["in"] = "in";
+        map["is"] = "is";
+        map["lambda"] = "lambda";
+        map["None"] = "None";
+        map["not"] = "not";
+        map["or"] = "or";
+        map["return"] = "return";
+
+   
     
     std::vector<char> code(text.begin(), text.end());
     std::vector<Tokens> tokens;
@@ -31,8 +65,18 @@ int main() {
                 text += code.front();
                 code.erase(code.begin());
             }
-            Tokens token(ID, text);
-            tokens.push_back(token);
+
+            auto it = map.find(text);
+
+            if(it != map.end()) {
+                Tokens token(RESERVED_KEYWORD, text);
+                tokens.push_back(token);
+            } else {
+                Tokens token(ID, text);
+                tokens.push_back(token);
+            }
+            
+            
 
             std::cout << "Identifier: " << text << std::endl;
         }
