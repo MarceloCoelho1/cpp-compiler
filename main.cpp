@@ -7,9 +7,10 @@
 #include <unordered_map>
 
 int main() {
-    std::string text = "return";
+    std::string text = "10++";
     std::regex LETTERS("[a-zA-Z]");
     std::regex NUMBERS("[0-9]");
+    std::regex ARITMETICOPERATIONS("[+\\-*/%=]");
 
      std::unordered_map<std::string, std::string> map;
 
@@ -119,6 +120,15 @@ int main() {
             }
 
             Tokens token(COMMENT, comment);
+            tokens.push_back(token);
+        }
+        if(std::regex_match(std::string(1, code.front()), ARITMETICOPERATIONS)) {
+            std::string symbol("");
+            while(!code.empty() && std::regex_match(std::string(1, code.front()), ARITMETICOPERATIONS)) {
+                symbol += code.front();
+                code.erase(code.begin());
+            }
+            Tokens token(ARITMETIC_OPERATIONS, symbol);
             tokens.push_back(token);
         }
     }
