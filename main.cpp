@@ -1,159 +1,276 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <regex>
 #include "Tokens.h"
-#include "TokenType.h" 
+#include "TokenType.h"
 #include <unordered_map>
 
-int main() {
-    std::string text = "10++";
-    std::regex LETTERS("[a-zA-Z]");
-    std::regex NUMBERS("[0-9]");
-    std::regex ARITMETICOPERATIONS("[+\\-*/%=]");
+// global declarations
+int currentIndentLevel = 0;
 
-     std::unordered_map<std::string, std::string> map;
+std::vector<Tokens> tokens;
+std::regex LETTERS("[a-zA-Z]");
+std::regex NUMBERS("[0-9]");
+std::regex ARITMETICOPERATIONS("[+\\-*/%]");
+std::regex SYMBOLS("[,]");
 
-        // Reserved keywords in Python
-        map["and"] = "and";
-        map["as"] = "as";
-        map["assert"] = "assert";
-        map["async"] = "async";
-        map["await"] = "await";
-        map["break"] = "break";
-        map["class"] = "class";
-        map["continue"] = "continue";
-        map["def"] = "def";
-        map["del"] = "del";
-        map["elif"] = "elif";
-        map["else"] = "else";
-        map["except"] = "except";
-        map["False"] = "False";
-        map["finally"] = "finally";
-        map["for"] = "for";
-        map["from"] = "from";
-        map["global"] = "global";
-        map["if"] = "if";
-        map["import"] = "import";
-        map["in"] = "in";
-        map["is"] = "is";
-        map["lambda"] = "lambda";
-        map["None"] = "None";
-        map["not"] = "not";
-        map["or"] = "or";
-        map["return"] = "return";
+bool isReservedKeyword(std::string word, std::string text)
+{
+    std::unordered_map<std::string, std::string> map;
 
-   
-    
-    std::vector<char> code(text.begin(), text.end());
-    std::vector<Tokens> tokens;
-    while (!code.empty()) {
-        if(code.front() == '"') {
+    // Reserved keywords in Python
+    map["and"] = "and";
+    map["as"] = "as";
+    map["assert"] = "assert";
+    map["async"] = "async";
+    map["await"] = "await";
+    map["break"] = "break";
+    map["class"] = "class";
+    map["continue"] = "continue";
+    map["def"] = "def";
+    map["del"] = "del";
+    map["elif"] = "elif";
+    map["else"] = "else";
+    map["except"] = "except";
+    map["False"] = "False";
+    map["finally"] = "finally";
+    map["for"] = "for";
+    map["from"] = "from";
+    map["global"] = "global";
+    map["if"] = "if";
+    map["import"] = "import";
+    map["in"] = "in";
+    map["is"] = "is";
+    map["lambda"] = "lambda";
+    map["None"] = "None";
+    map["not"] = "not";
+    map["or"] = "or";
+    map["print"] = "print";
+    map["return"] = "return";
+    map["while"] = "while";
+
+    auto it = map.find(text);
+
+    if (it != map.end())
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void tokenizer(std::string input)
+{
+    std::vector<char> code(input.begin(), input.end());
+    while (!code.empty())
+    {
+        if (code.front() == '"')
+        {
             code.erase(code.begin());
             std::string text("");
-            while(!code.empty() && std::regex_match(std::string(1, code.front()), LETTERS) || !code.empty() && code.front() == ' ') {
+            while (!code.empty() && std::regex_match(std::string(1, code.front()), LETTERS) || !code.empty() && code.front() == ' ')
+            {
                 text += code.front();
                 code.erase(code.begin());
             }
             code.erase(code.begin());
-            Tokens token(TEXT, text);
+            Tokens token(STRING, text);
             tokens.push_back(token);
             std::cout << "String: " << text << std::endl;
+            continue;
         }
-        if(std::regex_match(std::string(1, code.front()), LETTERS)) {
-            std::string text("");
-            while(!code.empty() && std::regex_match(std::string(1, code.front()), LETTERS)) {
-                text += code.front();
-                code.erase(code.begin());
-            }
-
-            auto it = map.find(text);
-
-            if(it != map.end()) {
-                Tokens token(RESERVED_KEYWORD, text);
-                tokens.push_back(token);
-            } else {
-                Tokens token(ID, text);
-                tokens.push_back(token);
-            }
-            
-            
-
-            std::cout << "Identifier: " << text << std::endl;
-        }
-        if(code.front() == '\n' || code.front() == ' ') {
+        if (code.front() == '(')
+        {
+            std::string symbol("(");
+            Tokens token(OPEN_PAREN, symbol);
+            tokens.push_back(token);
             code.erase(code.begin());
             continue;
         }
-        if(std::regex_match(std::string(1, code.front()), NUMBERS)) {
+        if (code.front() == ')')
+        {
+            std::string symbol(")");
+            Tokens token(CLOSE_PAREN, symbol);
+            tokens.push_back(token);
+            code.erase(code.begin());
+            continue;
+        }
+        if (std::regex_match(std::string(1, code.front()), SYMBOLS))
+        {
+            std::string symbol(1, code.front());
+            Tokens token(SYMBOL, symbol);
+            tokens.push_back(token);
+            code.erase(code.begin());
+            continue;
+        }
+        if (code.front() == ':')
+        {
+            std::string symbol(":");
+            Tokens token(CODEBLOCK, symbol);
+            tokens.push_back(token);
+            code.erase(code.begin());
+            continue;
+        }
+        if (code.front() == '=')
+        {
+
+            std::string symbol("=");
+            Tokens token(EQUALS, symbol);
+            tokens.push_back(token);
+            code.erase(code.begin());
+            continue;
+        }
+        if (std::regex_match(std::string(1, code.front()), LETTERS))
+        {
+            std::string text("");
+            while (!code.empty() && std::regex_match(std::string(1, code.front()), LETTERS))
+            {
+                text += code.front();
+                code.erase(code.begin());
+            }
+
+            bool isReserved = isReservedKeyword(text, input);
+            if (isReserved)
+            {
+                Tokens token(RESERVED_KEYWORD, text);
+                tokens.push_back(token);
+            }
+            else
+            {
+                Tokens token(ID, text);
+                tokens.push_back(token);
+            }
+
+            continue;
+        }
+        if (code.front() == ' ' || code.front() == '\t')
+        {
+            code.erase(code.begin());
+            continue;
+        }
+
+        if (code.front() == '\n')
+        {
+            code.erase(code.begin());
+            int newIndentLevel = 0;
+            while (!code.empty() && (code.front() == ' ' || code.front() == '\t'))
+            {
+                newIndentLevel++;
+                code.erase(code.begin());
+            }
+            if (newIndentLevel < currentIndentLevel)
+            {
+
+                Tokens token(ENDCODEBLOCK, "endBlockCode");
+                tokens.push_back(token);
+            }
+            currentIndentLevel = newIndentLevel;
+            continue;
+        }
+        if (std::regex_match(std::string(1, code.front()), NUMBERS))
+        {
             std::string number("");
             int flag = 0;
-            while(!code.empty() && std::regex_match(std::string(1, code.front()), NUMBERS) || !code.empty() && code.front() == '.') {
-                if(code.front() == '.') {
+            while (!code.empty() && std::regex_match(std::string(1, code.front()), NUMBERS) || !code.empty() && code.front() == '.')
+            {
+                if (code.front() == '.')
+                {
                     flag = 1;
                 }
                 number += code.front();
                 code.erase(code.begin());
             }
 
-            if(flag == 1) {
+            if (flag == 1)
+            {
                 Tokens token(NUM_DEC, number);
                 tokens.push_back(token);
-            } else {
+            }
+            else
+            {
                 Tokens token(NUM_INT, number);
                 tokens.push_back(token);
             }
-            
-            std::cout << "Number: " << number << std::endl;
+
+            continue;
         }
-        if(code.front() == '/' && code.at(1) == '/') {
+        if (code.front() == '/' && code.at(1) == '/')
+        {
             code.erase(code.begin());
             code.erase(code.begin());
-            if(code.front() == ' ') {
+            if (code.front() == ' ')
+            {
                 code.erase(code.begin());
             }
 
             std::string comment("");
-            while(!code.empty() && code.front() != '\n') {
+            while (!code.empty() && code.front() != '\n')
+            {
                 comment += code.front();
                 code.erase(code.begin());
             }
 
             Tokens token(COMMENT, comment);
             tokens.push_back(token);
+            continue;
         }
-        if(std::regex_match(std::string(1, code.front()), ARITMETICOPERATIONS)) {
+        if (code.front() == ';')
+        {
+
+            std::string symbol(";");
+            Tokens token(SEMICOLON, symbol);
+            tokens.push_back(token);
+            code.erase(code.begin());
+            continue;
+        }
+        if (std::regex_match(std::string(1, code.front()), ARITMETICOPERATIONS))
+        {
             std::string symbol("");
-            while(!code.empty() && std::regex_match(std::string(1, code.front()), ARITMETICOPERATIONS)) {
+            while (!code.empty() && std::regex_match(std::string(1, code.front()), ARITMETICOPERATIONS))
+            {
                 symbol += code.front();
                 code.erase(code.begin());
             }
-            Tokens token(ARITMETIC_OPERATIONS, symbol);
+            Tokens token(BINARY_OPERATOR, symbol);
             tokens.push_back(token);
+            continue;
+        }
+        std::cout << "Error: " << code.front() << std::endl;
+        break;
+    }
+}
+
+std::string getFileContent(std::string url)
+{
+    std::ifstream myfile;
+    std::string buffer;
+    myfile.open(url);
+    if (myfile.is_open())
+    {
+        std::string myline;
+        while (std::getline(myfile, myline))
+        {
+            buffer += myline + '\n';
         }
     }
 
-    for (int i = 0; i < tokens.size(); i++) {
+    return buffer;
+}
+
+int main()
+{
+
+    std::string buffer = getFileContent("./inputCode/main.py");
+    tokenizer(buffer);
+
+    for (int i = 0; i < tokens.size(); i++)
+    {
         std::cout << "Tipo: " << tokens[i].getType() << ", Valor: " << tokens[i].getValue() << std::endl;
     }
 
     return 0;
-}
-
-std::string text(std::vector<char> code) {
-    std::string text = "";
-    int check = 0;
-
-    if(code.empty()) return ""; // if code is empty return an empty string
-
-    for(auto &x : code) { // run through code checking if has an text start with
-                          // checking the double aspas and end with it
-        if(x == '\"') check == 0 ? check = 1 : check = 0;
-        // need to add the simple aspas and the double ones
-
-        if(check == 1) {
-            text+=x; // if check is ok, add the text to the string as it is written
-        }
-    }
-    return text; // return the text written
 }
