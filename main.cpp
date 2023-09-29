@@ -14,7 +14,8 @@ std::vector<Tokens> tokens;
 std::regex LETTERS("[a-zA-Z]");
 std::regex NUMBERS("[0-9]");
 std::regex ARITMETICOPERATIONS("[+\\-*/%]");
-std::regex SYMBOLS("[,]");
+std::regex SYMBOLS("[,],{,}");
+std::regex COMPARISON_SYMBOLS("==,<=,>=,>,<,||,&&,!=,?,:");
 
 bool isReservedKeyword(std::string word, std::string text)
 {
