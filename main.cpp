@@ -115,7 +115,7 @@ void tokenizer(std::string input)
             code.erase(code.begin());
             code.erase(code.begin());
 
-            while(!code.empty() && std::regex_match(std::string(1, code.front()), LETTERS) || !code.empty() && code.front() == ' ' || !code.empty() && std::regex_match(std::string(1, code.front()), NUMBERS))  {
+            while(!code.empty() && code.front() != '*' && code.at(1) != '/')  {
                 text += code.front();
                 code.erase(code.begin());
             }
