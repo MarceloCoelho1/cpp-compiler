@@ -14,8 +14,8 @@ std::vector<Tokens> tokens;
 std::regex LETTERS("[a-zA-Z]");
 std::regex NUMBERS("[0-9]");
 std::regex ARITMETICOPERATIONS("[+\\-*/%]");
-std::regex SYMBOLS("[,],{,}");
-std::regex COMPARISON_SYMBOLS("==,<=,>=,>,<,||,&&,!=,?,:");
+std::regex SYMBOLS("[,\\{\\}]");
+std::regex COMPARISON_SYMBOLS("==|<=|>=|>|<|\\|\\||&&|!=|\\?|:");
 
 bool isReservedKeyword(std::string word, std::string text)
 {
@@ -128,7 +128,7 @@ void tokenizer(std::string input)
         if (std::regex_match(std::string(1, code.front()), LETTERS))
         {
             std::string text("");
-            while (!code.empty() && std::regex_match(std::string(1, code.front()), LETTERS))
+            while (!code.empty() && std::regex_match(std::string(1, code.front()), LETTERS) || std::regex_match(std::string(1, code.front()), NUMBERS))
             {
                 text += code.front();
                 code.erase(code.begin());
@@ -240,6 +240,18 @@ void tokenizer(std::string input)
             tokens.push_back(token);
             continue;
         }
+        if (std::regex_match(std::string(1, code.front()), COMPARISON_SYMBOLS))
+        {
+            std::string symbol("");
+            while(!code.empty() && std::regex_match(std::string(1, code.front()), COMPARISON_SYMBOLS))
+            {
+                symbol += code.front();
+                code.erase(code.begin());
+            }
+            Tokens token(COMPARATOR_SYMBOLS, symbol);
+            tokens.push_back(token);
+            continue;
+        }
         std::cout << "Error: " << code.front() << std::endl;
         break;
     }
@@ -265,7 +277,7 @@ std::string getFileContent(std::string url)
 int main()
 {
 
-    std::string buffer = getFileContent("./inputCode/main.py");
+    std::string buffer = getFileContent("./inputCode/codeEx1.py");
     tokenizer(buffer);
 
     for (int i = 0; i < tokens.size(); i++)
