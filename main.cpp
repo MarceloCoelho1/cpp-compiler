@@ -51,6 +51,13 @@ bool isReservedKeyword(std::string word, std::string text)
     map["print"] = "print";
     map["return"] = "return";
     map["while"] = "while";
+    map["float"] = "float";
+    map["int"] = "int";
+    map["string"] = "string";
+    map["double"] = "double";
+    map["long"] = "long";
+    map["char"] = "char";
+
 
     auto it = map.find(text);
 
@@ -64,11 +71,28 @@ bool isReservedKeyword(std::string word, std::string text)
     }
 }
 
+
 void tokenizer(std::string input)
 {
     std::vector<char> code(input.begin(), input.end());
     while (!code.empty())
     {
+        if(code.front() == '\'') {
+            code.erase(code.begin());
+            std::string text("");
+
+            text = code.front();
+            code.erase(code.begin());
+
+            if(code.front() != '\'') {
+                std::cout << "Error: "<< std::endl;
+                exit(0);
+            }
+
+
+            code.erase(code.begin());
+            Tokens token(CHAR, text);
+        }
         if (code.front() == '"')
         {
             code.erase(code.begin());
@@ -83,6 +107,28 @@ void tokenizer(std::string input)
             tokens.push_back(token);
             std::cout << "String: " << text << std::endl;
             continue;
+        }
+        if(code.front() == '/' && code.at(1) == '*') {
+            // this is a comment, just ignore
+
+            std::string text("");
+            code.erase(code.begin());
+            code.erase(code.begin());
+
+            while(!code.empty() && std::regex_match(std::string(1, code.front()), LETTERS) || !code.empty() && code.front() == ' ' || !code.empty() && std::regex_match(std::string(1, code.front()), NUMBERS))  {
+                text += code.front();
+                code.erase(code.begin());
+            }
+
+            code.erase(code.begin());
+            code.erase(code.begin());
+
+            
+            Tokens token(COMMENT, text);
+            tokens.push_back(token);
+            continue;
+
+
         }
         if (code.front() == '(')
         {
