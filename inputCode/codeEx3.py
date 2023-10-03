@@ -1,6 +1,4 @@
-// Este é um comentário de linha
-int multiplicar(int x, int y) {
-    /* Este é um comentário
-       de múltiplas linhas */
-    return x * y;
+float calcularMedia(float a, float b) {
+    float resultado = (a + b) / 2.0;
+    return resultado;
 }

@@ -3,23 +3,23 @@
 #include <string>
 #include <vector>
 #include <regex>
-#include "Tokens.h"
-#include "TokenType.h"
+#include "Tokens.h"  
+#include "TokenType.h"  
 #include <unordered_map>
 
-// global declarations
+// Global declarations
 int currentIndentLevel = 0;
 
 std::vector<Tokens> tokens;
 std::regex LETTERS("[a-zA-Z]");
-std::regex LETTERS_AS("[áàãâéèêíìóòôõúùçÁÀÃÂÉÈÊÍÌÓÒÔÕÚÙÇ]");
+std::regex LETTERS_WITH_ACCENTS("[\\p{L}]");
 std::regex NUMBERS("[0-9]");
 std::regex carac_s("[!@#$%^&*()_+-={}\\[\\]|\\\\:;\"'<>,.?/]");
 std::regex ARITMETICOPERATIONS("[+\\-*/%]");
-std::regex SYMBOLS("[,\\{\\}\[[\\]]");
+std::regex SYMBOLS("[,\\{\\}\\[\\]]");  
 std::regex COMPARISON_SYMBOLS("==|<=|>=|>|<|\\|\\||&&|!=|\\?|:");
 
-bool isReservedKeyword(std::string word, std::string text)
+bool isReservedKeyword(const std::string& word)
 {
     std::unordered_map<std::string, std::string> map;
 
@@ -60,37 +60,29 @@ bool isReservedKeyword(std::string word, std::string text)
     map["long"] = "long";
     map["char"] = "char";
 
+    auto it = map.find(word);
 
-    auto it = map.find(text);
-
-    if (it != map.end())
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    return it != map.end();
 }
 
-
-void tokenizer(std::string input)
+void tokenizer(const std::string& input)
 {
     std::vector<char> code(input.begin(), input.end());
     while (!code.empty())
     {
-        if(code.front() == '\'') {
+        if (code.front() == '\'')
+        {
             code.erase(code.begin());
             std::string text("");
 
-            text = code.front();
+            text += code.front();
             code.erase(code.begin());
 
-            if(code.front() != '\'') {
-                std::cout << "Error: "<< std::endl;
+            if (code.front() != '\'')
+            {
+                std::cout << "Error: Missing closing single quote" << std::endl;
                 exit(0);
             }
-
 
             code.erase(code.begin());
             Tokens token(CHAR, text);
@@ -100,31 +92,31 @@ void tokenizer(std::string input)
         {
             code.erase(code.begin());
             std::string text("");
-            while (!code.empty() || code.front() == '"')
+            while (!code.empty() && code.front() != '"')
             {
                 text += code.front();
                 code.erase(code.begin());
             }
-            code.erase(code.begin());
+            if (!code.empty())
+            {
+                code.erase(code.begin()); // Remove o último '"' encontrado
+            }
             Tokens token(STRING, text);
             tokens.push_back(token);
             std::cout << "String: " << text << std::endl;
             continue;
         }
-        if(code.front() == '/' && code.at(1) == '*') {
-            // this is a comment, just ignore
-
+        if (code.front() == '/' && code.at(1) == '*')
+        {
+            // This is a comment, just ignore
             code.erase(code.begin());
             code.erase(code.begin());
-
-            while(!code.empty() && code.front() != '*' && code.at(1) != '/')  {
-                text += code.front();
+            while (!code.empty() && !(code.front() == '*' && code.at(1) == '/'))
+            {
                 code.erase(code.begin());
             }
-
             code.erase(code.begin());
             code.erase(code.begin());
-
             continue;
         }
         if (code.front() == '(')
@@ -161,23 +153,22 @@ void tokenizer(std::string input)
         }
         if (code.front() == '=')
         {
-
             std::string symbol("=");
             Tokens token(EQUALS, symbol);
             tokens.push_back(token);
             code.erase(code.begin());
             continue;
         }
-        if (std::regex_match(std::string(1, code.front()), LETTERS))
+        if (std::regex_match(std::string(1, code.front()), LETTERS) || std::regex_match(std::string(1, code.front()), LETTERS_WITH_ACCENTS))
         {
             std::string text("");
-            while (!code.empty() && std::regex_match(std::string(1, code.front()), LETTERS) || std::regex_match(std::string(1, code.front()), NUMBERS))
+            while (!code.empty() && (std::regex_match(std::string(1, code.front()), LETTERS) || std::regex_match(std::string(1, code.front()), NUMBERS)))
             {
                 text += code.front();
                 code.erase(code.begin());
             }
 
-            bool isReserved = isReservedKeyword(text, input);
+            bool isReserved = isReservedKeyword(text);
             if (isReserved)
             {
                 Tokens token(RESERVED_KEYWORD, text);
@@ -188,7 +179,6 @@ void tokenizer(std::string input)
                 Tokens token(ID, text);
                 tokens.push_back(token);
             }
-
             continue;
         }
         if (code.front() == ' ' || code.front() == '\t')
@@ -196,7 +186,6 @@ void tokenizer(std::string input)
             code.erase(code.begin());
             continue;
         }
-
         if (code.front() == '\n')
         {
             code.erase(code.begin());
@@ -208,7 +197,6 @@ void tokenizer(std::string input)
             }
             if (newIndentLevel < currentIndentLevel)
             {
-
                 Tokens token(ENDCODEBLOCK, "endBlockCode");
                 tokens.push_back(token);
             }
@@ -219,7 +207,7 @@ void tokenizer(std::string input)
         {
             std::string number("");
             int flag = 0;
-            while (!code.empty() && std::regex_match(std::string(1, code.front()), NUMBERS) || !code.empty() && code.front() == '.')
+            while (!code.empty() && (std::regex_match(std::string(1, code.front()), NUMBERS) || code.front() == '.'))
             {
                 if (code.front() == '.')
                 {
@@ -260,7 +248,6 @@ void tokenizer(std::string input)
         }
         if (code.front() == ';')
         {
-
             std::string symbol(";");
             Tokens token(SEMICOLON, symbol);
             tokens.push_back(token);
@@ -282,7 +269,7 @@ void tokenizer(std::string input)
         if (std::regex_match(std::string(1, code.front()), COMPARISON_SYMBOLS))
         {
             std::string symbol("");
-            while(!code.empty() && std::regex_match(std::string(1, code.front()), COMPARISON_SYMBOLS))
+            while (!code.empty() && std::regex_match(std::string(1, code.front()), COMPARISON_SYMBOLS))
             {
                 symbol += code.front();
                 code.erase(code.begin());
@@ -296,7 +283,7 @@ void tokenizer(std::string input)
     }
 }
 
-std::string getFileContent(std::string url)
+std::string getFileContent(const std::string& url)
 {
     std::ifstream myfile;
     std::string buffer;
@@ -315,7 +302,6 @@ std::string getFileContent(std::string url)
 
 int main()
 {
-
     std::string buffer = getFileContent("./inputCode/test.py");
     tokenizer(buffer);
 
