@@ -117,7 +117,8 @@ void tokenizer(std::string input)
             code.erase(code.begin());
             code.erase(code.begin());
 
-            while(!code.empty() || !(code.front() == '*' && code.at(1) == '/'))  {
+            while(!code.empty() && code.front() != '*' && code.at(1) != '/')  {
+                text += code.front();
                 code.erase(code.begin());
             }
 
