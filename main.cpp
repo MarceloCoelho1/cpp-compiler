@@ -92,8 +92,12 @@ void tokenizer(const std::string& input)
         {
             code.erase(code.begin());
             std::string text("");
-            while (!code.empty() && code.front() != '"')
+            while (!code.empty() && code.front() != '"' )
             {
+                if(code.front() == '.') {
+                    std::cout << "Error: ." << std::endl;
+                    exit(0);
+                }
                 text += code.front();
                 code.erase(code.begin());
             }
